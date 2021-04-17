@@ -16,7 +16,7 @@ import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
 
-const AudioCaption = () => {
+const GalleryPost = () => {
 	const initialState = {
 		caption: "",
 		picUri: "",
@@ -286,4 +286,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-export default AudioCaption;
+export default GalleryPost;
