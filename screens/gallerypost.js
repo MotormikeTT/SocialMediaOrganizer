@@ -11,6 +11,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import * as FileSystem from "expo-file-system";
+import * as Location from "expo-location";
 import { db, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
 
@@ -19,6 +20,7 @@ import BlankImage from "../assets/blankimage.png";
 const GalleryPost = () => {
 	const initialState = {
 		caption: "",
+		location: "",
 		picUri: "",
 		recordingUri: "",
 		recording: null,
@@ -30,25 +32,12 @@ const GalleryPost = () => {
 	const [selectedImage, setSelectedImage] = useState(BlankImage);
 	const COLLECTION = "posts";
 
-	const verifyCameraPermissions = async () => {
-		const result = await Permissions.askAsync(Permissions.CAMERA);
+	const verifyPermissions = async (permission) => {
+		const result = await Permissions.askAsync(permission);
 		if (result.status !== "granted") {
 			Alert.alert(
 				"Insufficient Permissions!",
-				"You need to grant camera permissions to use this app.",
-				[{ text: "Okay" }]
-			);
-			return false;
-		}
-		return true;
-	};
-
-	const verifyAudioPermissions = async () => {
-		const result = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-		if (result.status !== "granted") {
-			Alert.alert(
-				"Insufficient Permissions!",
-				"You need to grant audio recording permissions to use this app.",
+				"You need to grant permissions to use this app.",
 				[{ text: "Okay" }]
 			);
 			return false;
@@ -68,7 +57,7 @@ const GalleryPost = () => {
 	};
 
 	const retrieveImageHandler = async () => {
-		const hasPermission = await verifyCameraPermissions();
+		const hasPermission = await verifyPermissions(Permissions.CAMERA);
 		if (!hasPermission) {
 			return false;
 		}
@@ -85,8 +74,23 @@ const GalleryPost = () => {
 		}
 	};
 
-	startRecordingAudio = async () => {
-		const hasPermission = await verifyAudioPermissions();
+	const getCurrentLocation = async () => {
+		if (await verifyPermissions(Permissions.LOCATION)) {
+			let location = await Location.getCurrentPositionAsync({
+				accuracy: Location.Accuracy.Highest,
+			});
+			// Reverse geocode a location to postal address
+			let reverseGeocode = await Location.reverseGeocodeAsync(location.coords);
+			let locationValue;
+			if (reverseGeocode.length !== 0) {
+				locationValue = `${reverseGeocode[0].street}, ${reverseGeocode[0].city}, ${reverseGeocode[0].region}`;
+				setState({ location: locationValue });
+			}
+		}
+	};
+
+	const startRecordingAudio = async () => {
+		const hasPermission = await verifyPermissions(Permissions.AUDIO_RECORDING);
 		if (!hasPermission) {
 			return false;
 		} else {
@@ -115,7 +119,7 @@ const GalleryPost = () => {
 		}
 	};
 
-	stopRecordingAudio = async () => {
+	const stopRecordingAudio = async () => {
 		try {
 			await state.recording.stopAndUnloadAsync();
 			const uri = state.recording.getURI();
@@ -127,7 +131,7 @@ const GalleryPost = () => {
 		}
 	};
 
-	playRecordedAudio = async () => {
+	const playRecordedAudio = async () => {
 		await Audio.setAudioModeAsync({
 			// set to false to play through speaker (instead of headset)
 			allowsRecordingIOS: false,
@@ -190,6 +194,7 @@ const GalleryPost = () => {
 					pictureuri: newPicPath,
 					recordinguri: newRecordPath,
 					caption: state.caption,
+					location: state.location,
 				},
 				{
 					merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
@@ -208,7 +213,7 @@ const GalleryPost = () => {
 		<View style={styles.inputContainer}>
 			<View style={{ alignItems: "center" }}>
 				<TouchableOpacity
-					style={styles.image}
+					style={{ padding: 10 }}
 					activeOpacity={0.8}
 					onPress={promptForPictureResponse}
 				>
@@ -217,12 +222,25 @@ const GalleryPost = () => {
 			</View>
 			<View style={{ marginTop: 20, alignItems: "center" }}>
 				<TextInput
-					placeholder="Caption..."
+					placeholder="Caption"
 					style={styles.input}
 					onChangeText={(val) => {
 						setState({ caption: val });
 					}}
 					value={state.caption}
+				/>
+				<TextInput
+					placeholder="Enter Location or press button to retrieve"
+					style={styles.input}
+					onChangeText={(val) => {
+						setState({ location: val });
+					}}
+					value={state.location}
+				/>
+				<Button
+					style={styles.button}
+					title="Get Current Location"
+					onPress={getCurrentLocation}
 				/>
 			</View>
 			<View style={styles.buttonContainer}>
@@ -230,7 +248,7 @@ const GalleryPost = () => {
 					<View style={{ flexDirection: "column", marginRight: 20 }}>
 						<Button
 							title={
-								state.recording === null ? "Start Recording" : "Stop Recording"
+								state.recording === null ? "Record Caption" : "Stop Recording"
 							}
 							onPress={() => {
 								state.recording === null
@@ -245,7 +263,7 @@ const GalleryPost = () => {
 				</View>
 			</View>
 			<View style={styles.buttonContainer}>
-				<View style={styles.button}>
+				<View style={{ width: "30%", marginTop: 150 }}>
 					<Button title="Save" color="red" onPress={SaveItemHandler} />
 				</View>
 			</View>
@@ -256,8 +274,9 @@ const GalleryPost = () => {
 const styles = StyleSheet.create({
 	inputContainer: { margin: 10 },
 	image: {
-		width: 180,
-		height: 180,
+		marginBottom: 10,
+		width: 380,
+		height: 280,
 	},
 	buttonContainer: {
 		alignItems: "center",
@@ -268,6 +287,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	input: {
+		marginBottom: 10,
 		width: "80%",
 		borderColor: "grey",
 		borderWidth: 0.5,

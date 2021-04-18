@@ -2,12 +2,14 @@ import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Authentication from "./screens/authentication";
+import Gallery from "./screens/homepagegallery";
+import GalleryPost from "./screens/gallerypost";
 
 export default function App() {
 	return (
 		<View style={styles.form}>
 			<Text style={styles.txt}>Social Media Organizer</Text>
-			<Authentication></Authentication>
+			<Gallery></Gallery>
 		</View>
 	);
 }
