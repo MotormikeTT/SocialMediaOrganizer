@@ -21,6 +21,7 @@ import BlankImage from "../assets/blankimage.png";
 const GalleryPost = ({ route }) => {
 	const PostData = route.params.post;
 	const initialState = {
+		updateId: PostData?.id ?? null,
 		caption: PostData?.caption ?? "",
 		location: PostData?.location ?? "",
 		picUri: PostData?.pictureuri ?? "",
@@ -176,7 +177,7 @@ const GalleryPost = ({ route }) => {
 		}
 	};
 
-	const SaveItemHandler = async () => {
+	const StoreItemHandler = async () => {
 		// move pic to storage
 		var newPicPath = await saveFileToPermanentStorage(
 			selectedImage.uri,
@@ -190,29 +191,56 @@ const GalleryPost = ({ route }) => {
 		);
 		setState({ recordingUri: newRecordPath });
 
-		// save contact to database
+		// commit data to database
 		var uid = auth.currentUser.uid;
-		firestore
-			.collection(COLLECTION)
-			.add(
-				{
-					author: uid,
-					pictureuri: newPicPath,
-					recordinguri: newRecordPath,
-					caption: state.caption,
-					location: state.location,
-				},
-				{
-					merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
-				}
-			)
-			.then(function () {
-				Alert.alert("Document successfully written!");
-			})
-			.catch(function (error) {
-				Alert.alert("Error writing document");
-				console.log("Error writing document: ", error);
-			});
+
+		// determine if it's add or update
+		if (state.updateId !== null) {
+			firestore
+				.collection(COLLECTION)
+				.doc(state.updateId)
+				.set(
+					{
+						author: uid,
+						pictureuri: newPicPath,
+						recordinguri: newRecordPath,
+						caption: state.caption,
+						location: state.location,
+					},
+					{
+						merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
+					}
+				)
+				.then(function () {
+					Alert.alert("Document successfully updated!");
+				})
+				.catch(function (error) {
+					Alert.alert("Error updating document");
+					console.log("Error updating document: ", error);
+				});
+		} else {
+			firestore
+				.collection(COLLECTION)
+				.add(
+					{
+						author: uid,
+						pictureuri: newPicPath,
+						recordinguri: newRecordPath,
+						caption: state.caption,
+						location: state.location,
+					},
+					{
+						merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
+					}
+				)
+				.then(function () {
+					Alert.alert("Document successfully written!");
+				})
+				.catch(function (error) {
+					Alert.alert("Error writing document");
+					console.log("Error writing document: ", error);
+				});
+		}
 	};
 
 	const onShare = async () => {
@@ -282,7 +310,11 @@ const GalleryPost = ({ route }) => {
 					<Button onPress={onShare} title="Share" />
 				</View>
 				<View style={{ width: "30%", marginTop: 10 }}>
-					<Button title="Save" color="red" onPress={SaveItemHandler} />
+					<Button
+						title={state.updateId ? "Edit" : "Save"}
+						color="red"
+						onPress={StoreItemHandler}
+					/>
 				</View>
 			</View>
 		</View>
