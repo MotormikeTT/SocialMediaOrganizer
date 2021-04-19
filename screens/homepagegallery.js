@@ -1,6 +1,6 @@
 import React, { useReducer, useEffect } from "react";
 import { TouchableOpacity, FlatList, Text, Image, Button } from "react-native";
-import { db, firestore } from "../FirebaseConfig";
+import { db, auth, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
 //import GalleryPost from "./gallerypost";
 
@@ -14,8 +14,11 @@ const HomePageGallery = (props) => {
 	const COLLECTION = "posts";
 
 	useEffect(() => {
+		var uid = auth.currentUser.uid;
+
 		firestore
 			.collection(COLLECTION)
+			.where("author", "==", uid)
 			.get()
 			.then((querySnapshot) => {
 				const retrievedPostList = querySnapshot.docs.map((doc) => {
