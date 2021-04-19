@@ -4,7 +4,7 @@ import { db, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
 //import GalleryPost from "./gallerypost";
 
-const HomePageGallery = () => {
+const HomePageGallery = (props) => {
 	const initialState = {
 		postList: [],
 	};
@@ -22,7 +22,6 @@ const HomePageGallery = () => {
 					return { id: doc.id, ...doc.data() };
 				});
 				setState({ postList: retrievedPostList });
-				//console.log(retrievedPostList);
 			})
 			.catch((error) => {
 				console.error(error);
@@ -55,14 +54,14 @@ const HomePageGallery = () => {
 
 	return (
 		<FlatList
-			style={{ marginTop: 30, height: "90%", backgroundColor: "#fc328d" }}
+			style={{ marginTop: 30, height: "90%" }}
 			data={state.postList}
 			renderItem={(itemData) => (
 				<TouchableOpacity
 					style={{ alignSelf: "center", marginTop: 15, marginBottom: 15 }}
 					activeOpacity={0.8}
 					onPress={() => {
-						console.log(itemData.item.caption);
+						props.navigation.navigate("Post", { post: itemData.item });
 					}}
 				>
 					<Image

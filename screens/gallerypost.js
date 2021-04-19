@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useEffect } from "react";
+import React, { useState, useReducer } from "react";
 import {
 	TouchableOpacity,
 	View,
@@ -8,6 +8,7 @@ import {
 	Button,
 	Alert,
 } from "react-native";
+import * as Sharing from "expo-sharing";
 import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import * as FileSystem from "expo-file-system";
@@ -17,19 +18,22 @@ import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
 
-const GalleryPost = () => {
+const GalleryPost = ({ route }) => {
+	const PostData = route.params.post;
 	const initialState = {
-		caption: "",
-		location: "",
-		picUri: "",
-		recordingUri: "",
+		caption: PostData?.caption ?? "",
+		location: PostData?.location ?? "",
+		picUri: PostData?.pictureuri ?? "",
+		recordingUri: PostData?.recordinguri ?? "",
 		recording: null,
 		soundObject: null,
 	};
 
 	const reducer = (state, newState) => ({ ...state, ...newState });
 	const [state, setState] = useReducer(reducer, initialState);
-	const [selectedImage, setSelectedImage] = useState(BlankImage);
+	const [selectedImage, setSelectedImage] = useState(
+		PostData ? { uri: PostData.pictureuri } : BlankImage
+	);
 	const COLLECTION = "posts";
 
 	const verifyPermissions = async (permission) => {
@@ -209,6 +213,15 @@ const GalleryPost = () => {
 			});
 	};
 
+	const onShare = async () => {
+		if (!(await Sharing.isAvailableAsync())) {
+			alert(`Uh oh, sharing isn't available on your platform`);
+			return;
+		}
+
+		await Sharing.shareAsync(selectedImage.uri);
+	};
+
 	return (
 		<View style={styles.inputContainer}>
 			<View style={{ alignItems: "center" }}>
@@ -263,7 +276,10 @@ const GalleryPost = () => {
 				</View>
 			</View>
 			<View style={styles.buttonContainer}>
-				<View style={{ width: "30%", marginTop: 150 }}>
+				<View style={{ marginTop: 150, width: "30%" }}>
+					<Button onPress={onShare} title="Share" />
+				</View>
+				<View style={{ width: "30%", marginTop: 10 }}>
 					<Button title="Save" color="red" onPress={SaveItemHandler} />
 				</View>
 			</View>
