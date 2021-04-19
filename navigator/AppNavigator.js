@@ -13,8 +13,12 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen
+          name="Authentication"
+          component={Authentication}
+          options={{ title: "Sign In" }}
+        />
         <Stack.Screen name="Home" component={HomePageGallery} />
-        <Stack.Screen name="Authentication" component={Authentication} />
         <Stack.Screen name="Joke2" component={GalleryPost} />
       </Stack.Navigator>
     </NavigationContainer>
