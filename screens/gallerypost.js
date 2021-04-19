@@ -13,7 +13,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as Permissions from "expo-permissions";
 import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
-import { db, firestore } from "../FirebaseConfig";
+import { auth, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
@@ -191,10 +191,12 @@ const GalleryPost = ({ route }) => {
 		setState({ recordingUri: newRecordPath });
 
 		// save contact to database
+		var uid = auth.currentUser.uid;
 		firestore
 			.collection(COLLECTION)
 			.add(
 				{
+					author: uid,
 					pictureuri: newPicPath,
 					recordinguri: newRecordPath,
 					caption: state.caption,
