@@ -18,9 +18,10 @@ import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
 
-const GalleryPost = ({ route }) => {
+const GalleryPost = ({ route, navigation }) => {
 	const PostData = route.params.post;
 	const initialState = {
+		updateId: PostData?.id ?? null,
 		caption: PostData?.caption ?? "",
 		location: PostData?.location ?? "",
 		picUri: PostData?.pictureuri ?? "",
@@ -176,7 +177,7 @@ const GalleryPost = ({ route }) => {
 		}
 	};
 
-	const SaveItemHandler = async () => {
+	const StoreItemHandler = async () => {
 		// move pic to storage
 		var newPicPath = await saveFileToPermanentStorage(
 			selectedImage.uri,
@@ -190,29 +191,71 @@ const GalleryPost = ({ route }) => {
 		);
 		setState({ recordingUri: newRecordPath });
 
-		// save contact to database
+		// commit data to database
 		var uid = auth.currentUser.uid;
+
+		// determine if it's add or update
+		if (state.updateId !== null) {
+			firestore
+				.collection(COLLECTION)
+				.doc(state.updateId)
+				.set(
+					{
+						author: uid,
+						pictureuri: newPicPath,
+						recordinguri: newRecordPath,
+						caption: state.caption,
+						location: state.location,
+					},
+					{
+						merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
+					}
+				)
+				.then(function () {
+					Alert.alert("Document successfully updated!");
+				})
+				.catch(function (error) {
+					Alert.alert("Error updating document");
+					console.log("Error updating document: ", error);
+				});
+		} else {
+			firestore
+				.collection(COLLECTION)
+				.add(
+					{
+						author: uid,
+						pictureuri: newPicPath,
+						recordinguri: newRecordPath,
+						caption: state.caption,
+						location: state.location,
+					},
+					{
+						merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
+					}
+				)
+				.then(function () {
+					Alert.alert("Document successfully written!");
+				})
+				.catch(function (error) {
+					Alert.alert("Error writing document");
+					console.log("Error writing document: ", error);
+				});
+		}
+	};
+
+	const DeleteItemHandler = () => {
 		firestore
 			.collection(COLLECTION)
-			.add(
-				{
-					author: uid,
-					pictureuri: newPicPath,
-					recordinguri: newRecordPath,
-					caption: state.caption,
-					location: state.location,
-				},
-				{
-					merge: true, // set with merge set to true to make sure we don't blow away existing data we didnt intend to
-				}
-			)
-			.then(function () {
-				Alert.alert("Document successfully written!");
+			.doc(state.updateId)
+			.delete()
+			.then(() => {
+				console.log("Document successfully deleted!");
 			})
-			.catch(function (error) {
-				Alert.alert("Error writing document");
-				console.log("Error writing document: ", error);
+			.catch((error) => {
+				console.error("Error removing document: ", error);
 			});
+
+		navigation.navigate("Home");
 	};
 
 	const onShare = async () => {
@@ -234,6 +277,25 @@ const GalleryPost = ({ route }) => {
 				>
 					<Image source={selectedImage} style={styles.image} />
 				</TouchableOpacity>
+			</View>
+			<View style={styles.buttonContainer}>
+				<View style={{ flexDirection: "row", marginTop: 10 }}>
+					<View style={{ flexDirection: "column", marginRight: 20 }}>
+						<Button
+							title={
+								state.recording === null ? "Record Caption" : "Stop Recording"
+							}
+							onPress={() => {
+								state.recording === null
+									? startRecordingAudio()
+									: stopRecordingAudio();
+							}}
+						/>
+					</View>
+					<View style={{ flexDirection: "column" }}>
+						<Button title="Play Recording" onPress={playRecordedAudio} />
+					</View>
+				</View>
 			</View>
 			<View style={{ marginTop: 20, alignItems: "center" }}>
 				<TextInput
@@ -259,30 +321,50 @@ const GalleryPost = ({ route }) => {
 				/>
 			</View>
 			<View style={styles.buttonContainer}>
-				<View style={{ flexDirection: "row", marginTop: 20 }}>
-					<View style={{ flexDirection: "column", marginRight: 20 }}>
-						<Button
-							title={
-								state.recording === null ? "Record Caption" : "Stop Recording"
-							}
-							onPress={() => {
-								state.recording === null
-									? startRecordingAudio()
-									: stopRecordingAudio();
-							}}
-						/>
-					</View>
-					<View style={{ flexDirection: "column" }}>
-						<Button title="Play Recording" onPress={playRecordedAudio} />
-					</View>
-				</View>
-			</View>
-			<View style={styles.buttonContainer}>
-				<View style={{ marginTop: 150, width: "30%" }}>
+				<View style={{ marginTop: 30, width: "30%" }}>
 					<Button onPress={onShare} title="Share" />
 				</View>
-				<View style={{ width: "30%", marginTop: 10 }}>
-					<Button title="Save" color="red" onPress={SaveItemHandler} />
+			</View>
+			<View
+				style={{
+					alignItems: "center",
+					width: "100%",
+					flexDirection: "row",
+					marginTop: 150,
+				}}
+			>
+				<View
+					style={{
+						flexDirection: "column",
+						width: "50%",
+						alignItems: "flex-end",
+						paddingEnd: 10,
+					}}
+				>
+					<View style={{ width: "50%" }}>
+						<Button
+							title={state.updateId ? "Edit" : "Save"}
+							color="red"
+							onPress={StoreItemHandler}
+						/>
+					</View>
+				</View>
+				<View
+					style={{
+						flexDirection: "column",
+						width: "50%",
+						alignItems: "flex-start",
+						paddingStart: 10,
+					}}
+				>
+					<View style={{ width: "50%" }}>
+						<Button
+							title="Delete"
+							color="red"
+							disabled={!state.updateId}
+							onPress={DeleteItemHandler}
+						/>
+					</View>
 				</View>
 			</View>
 		</View>
