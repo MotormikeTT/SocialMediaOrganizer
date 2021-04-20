@@ -243,6 +243,18 @@ const GalleryPost = ({ route }) => {
 		}
 	};
 
+	const DeleteItemHandler = () => {
+		db.collection("cities")
+			.doc(state.updateId)
+			.delete()
+			.then(() => {
+				console.log("Document successfully deleted!");
+			})
+			.catch((error) => {
+				console.error("Error removing document: ", error);
+			});
+	};
+
 	const onShare = async () => {
 		if (!(await Sharing.isAvailableAsync())) {
 			alert(`Uh oh, sharing isn't available on your platform`);
@@ -262,6 +274,25 @@ const GalleryPost = ({ route }) => {
 				>
 					<Image source={selectedImage} style={styles.image} />
 				</TouchableOpacity>
+			</View>
+			<View style={styles.buttonContainer}>
+				<View style={{ flexDirection: "row", marginTop: 10 }}>
+					<View style={{ flexDirection: "column", marginRight: 20 }}>
+						<Button
+							title={
+								state.recording === null ? "Record Caption" : "Stop Recording"
+							}
+							onPress={() => {
+								state.recording === null
+									? startRecordingAudio()
+									: stopRecordingAudio();
+							}}
+						/>
+					</View>
+					<View style={{ flexDirection: "column" }}>
+						<Button title="Play Recording" onPress={playRecordedAudio} />
+					</View>
+				</View>
 			</View>
 			<View style={{ marginTop: 20, alignItems: "center" }}>
 				<TextInput
@@ -287,34 +318,50 @@ const GalleryPost = ({ route }) => {
 				/>
 			</View>
 			<View style={styles.buttonContainer}>
-				<View style={{ flexDirection: "row", marginTop: 20 }}>
-					<View style={{ flexDirection: "column", marginRight: 20 }}>
-						<Button
-							title={
-								state.recording === null ? "Record Caption" : "Stop Recording"
-							}
-							onPress={() => {
-								state.recording === null
-									? startRecordingAudio()
-									: stopRecordingAudio();
-							}}
-						/>
-					</View>
-					<View style={{ flexDirection: "column" }}>
-						<Button title="Play Recording" onPress={playRecordedAudio} />
-					</View>
-				</View>
-			</View>
-			<View style={styles.buttonContainer}>
-				<View style={{ marginTop: 150, width: "30%" }}>
+				<View style={{ marginTop: 30, width: "30%" }}>
 					<Button onPress={onShare} title="Share" />
 				</View>
-				<View style={{ width: "30%", marginTop: 10 }}>
-					<Button
-						title={state.updateId ? "Edit" : "Save"}
-						color="red"
-						onPress={StoreItemHandler}
-					/>
+			</View>
+			<View
+				style={{
+					alignItems: "center",
+					width: "100%",
+					flexDirection: "row",
+					marginTop: 150,
+				}}
+			>
+				<View
+					style={{
+						flexDirection: "column",
+						width: "50%",
+						alignItems: "flex-end",
+						paddingEnd: 10,
+					}}
+				>
+					<View style={{ width: "50%" }}>
+						<Button
+							title={state.updateId ? "Edit" : "Save"}
+							color="red"
+							onPress={StoreItemHandler}
+						/>
+					</View>
+				</View>
+				<View
+					style={{
+						flexDirection: "column",
+						width: "50%",
+						alignItems: "flex-start",
+						paddingStart: 10,
+					}}
+				>
+					<View style={{ width: "50%" }}>
+						<Button
+							title="Delete"
+							color="red"
+							disabled={!state.updateId}
+							onPress={DeleteItemHandler}
+						/>
+					</View>
 				</View>
 			</View>
 		</View>
