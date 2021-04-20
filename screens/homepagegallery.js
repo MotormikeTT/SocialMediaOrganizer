@@ -1,8 +1,8 @@
-import React, { useReducer, useEffect } from "react";
+import React, { useReducer } from "react";
 import { TouchableOpacity, FlatList, Text, Image, Button } from "react-native";
-import { db, auth, firestore } from "../FirebaseConfig";
+import { auth, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
-//import GalleryPost from "./gallerypost";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomePageGallery = (props) => {
 	const initialState = {
@@ -13,7 +13,7 @@ const HomePageGallery = (props) => {
 	const [state, setState] = useReducer(reducer, initialState);
 	const COLLECTION = "posts";
 
-	useEffect(() => {
+	useFocusEffect(() => {
 		var uid = auth.currentUser.uid;
 
 		firestore
@@ -29,7 +29,7 @@ const HomePageGallery = (props) => {
 			.catch((error) => {
 				console.error(error);
 			});
-	}, []);
+	});
 
 	const playRecordedAudio = async (recordinguri) => {
 		await Audio.setAudioModeAsync({
