@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from "react";
+import React, { useEffect, useState, useReducer } from "react";
 import {
 	TouchableOpacity,
 	View,
@@ -18,14 +18,14 @@ import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
 
-const GalleryPost = ({ route, navigation }) => {
-	const PostData = route.params.post;
+const GalleryPost = ({ route, navigation, newPost }) => {
+	var PostData = route.params?.post ?? {};
 	const initialState = {
-		updateId: PostData?.id ?? null,
-		caption: PostData?.caption ?? "",
-		location: PostData?.location ?? "",
-		picUri: PostData?.pictureuri ?? "",
-		recordingUri: PostData?.recordinguri ?? "",
+		updateId: PostData.id ?? null,
+		caption: PostData.caption ?? "",
+		location: PostData.location ?? "",
+		picUri: PostData.pictureuri ?? "",
+		recordingUri: PostData.recordinguri ?? "",
 		recording: null,
 		soundObject: null,
 	};
@@ -33,9 +33,23 @@ const GalleryPost = ({ route, navigation }) => {
 	const reducer = (state, newState) => ({ ...state, ...newState });
 	const [state, setState] = useReducer(reducer, initialState);
 	const [selectedImage, setSelectedImage] = useState(
-		PostData ? { uri: PostData.pictureuri } : BlankImage
+		PostData.pictureuri ? { uri: PostData.pictureuri } : BlankImage
 	);
 	const COLLECTION = "posts";
+
+	useEffect(() => {
+		PostD = route.params?.post ?? {};
+		setState({
+			updateId: PostD.id ?? null,
+			caption: PostD.caption ?? "",
+			location: PostD.location ?? "",
+			picUri: PostD.pictureuri ?? "",
+			recordingUri: PostD.recordinguri ?? "",
+		});
+		setSelectedImage(
+			PostD.pictureuri ? { uri: PostData.pictureuri } : BlankImage
+		);
+	}, [route.params?.post]);
 
 	const verifyPermissions = async (permission) => {
 		const result = await Permissions.askAsync(permission);
@@ -52,7 +66,7 @@ const GalleryPost = ({ route, navigation }) => {
 
 	const promptForPictureResponse = () => {
 		Alert.alert(
-			"Change Audio Picture",
+			"Change Picture",
 			"",
 			[{ text: "Pick existing picture", onPress: retrieveImageHandler }],
 			{

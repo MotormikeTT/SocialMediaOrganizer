@@ -12,27 +12,37 @@ const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 function AppNavigator() {
-  function drawerNavigator() {
-    return (
-      <Drawer.Navigator>
-        <Drawer.Screen name="Home" component={HomePageGallery} />
-        <Drawer.Screen name="Post" component={GalleryPost} />
-      </Drawer.Navigator>
-    );
-  }
+	function drawerNavigator() {
+		return (
+			<Drawer.Navigator>
+				<Drawer.Screen name="Home" component={HomePageGallery} />
+				<Drawer.Screen
+					name="New Post"
+					component={GalleryPost}
+					initialParams={{ post: null }}
+				/>
+			</Drawer.Navigator>
+		);
+	}
 
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="Authentication"
-          component={Authentication}
-          options={{ title: "Sign In" }}
-        />
-        <Stack.Screen name="Home" children={drawerNavigator} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+	return (
+		<NavigationContainer>
+			<Stack.Navigator>
+				<Stack.Screen
+					name="Home"
+					children={drawerNavigator}
+					options={{
+						headerLeft: () => null,
+					}}
+				/>
+				<Stack.Screen
+					name="Authentication"
+					component={Authentication}
+					options={{ title: "Sign In", headerLeft: () => null }}
+				/>
+			</Stack.Navigator>
+		</NavigationContainer>
+	);
 }
 
 export default AppNavigator;

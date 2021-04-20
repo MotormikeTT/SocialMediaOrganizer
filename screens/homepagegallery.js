@@ -21,21 +21,24 @@ const HomePageGallery = (props) => {
 	const COLLECTION = "posts";
 
 	useFocusEffect(() => {
-		var uid = auth.currentUser.uid;
+		if (!auth.currentUser) props.navigation.navigate("Authentication");
+		else {
+			var uid = auth.currentUser.uid;
 
-		firestore
-			.collection(COLLECTION)
-			.where("author", "==", uid)
-			.get()
-			.then((querySnapshot) => {
-				const retrievedPostList = querySnapshot.docs.map((doc) => {
-					return { id: doc.id, ...doc.data() };
+			firestore
+				.collection(COLLECTION)
+				.where("author", "==", uid)
+				.get()
+				.then((querySnapshot) => {
+					const retrievedPostList = querySnapshot.docs.map((doc) => {
+						return { id: doc.id, ...doc.data() };
+					});
+					setState({ postList: retrievedPostList });
+				})
+				.catch((error) => {
+					console.error(error);
 				});
-				setState({ postList: retrievedPostList });
-			})
-			.catch((error) => {
-				console.error(error);
-			});
+		}
 	});
 
 	const playRecordedAudio = async (recordinguri) => {
@@ -82,7 +85,7 @@ const HomePageGallery = (props) => {
 						style={{ alignSelf: "center", marginTop: 15, marginBottom: 15 }}
 						activeOpacity={0.8}
 						onPress={() => {
-							props.navigation.navigate("Post", { post: itemData.item });
+							props.navigation.navigate("New Post", { post: itemData.item });
 						}}
 					>
 						<Image
