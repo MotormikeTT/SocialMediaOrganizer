@@ -18,7 +18,7 @@ import { Audio } from "expo-av";
 
 import BlankImage from "../assets/blankimage.png";
 
-const GalleryPost = ({ route }) => {
+const GalleryPost = ({ route, navigation }) => {
 	const PostData = route.params.post;
 	const initialState = {
 		updateId: PostData?.id ?? null,
@@ -244,7 +244,8 @@ const GalleryPost = ({ route }) => {
 	};
 
 	const DeleteItemHandler = () => {
-		db.collection("cities")
+		firestore
+			.collection(COLLECTION)
 			.doc(state.updateId)
 			.delete()
 			.then(() => {
@@ -253,6 +254,8 @@ const GalleryPost = ({ route }) => {
 			.catch((error) => {
 				console.error("Error removing document: ", error);
 			});
+
+		navigation.navigate("Home");
 	};
 
 	const onShare = async () => {
