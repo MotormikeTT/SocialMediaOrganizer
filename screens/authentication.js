@@ -184,8 +184,8 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 	},
 	textInput: {
-		borderColor: "#ccc",
 		marginBottom: 10,
+		borderColor: "#ccc",
 		borderColor: "grey",
 		borderWidth: 0.5,
 		borderRadius: 4,

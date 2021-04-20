@@ -1,5 +1,12 @@
 import React, { useReducer } from "react";
-import { TouchableOpacity, FlatList, Text, Image, Button } from "react-native";
+import {
+	TouchableOpacity,
+	FlatList,
+	Text,
+	Image,
+	Button,
+	View,
+} from "react-native";
 import { auth, firestore } from "../FirebaseConfig";
 import { Audio } from "expo-av";
 import { useFocusEffect } from "@react-navigation/native";
@@ -56,46 +63,58 @@ const HomePageGallery = (props) => {
 	};
 
 	return (
-		<FlatList
-			style={{ marginTop: 30, height: "90%" }}
-			data={state.postList}
-			renderItem={(itemData) => (
-				<TouchableOpacity
-					style={{ alignSelf: "center", marginTop: 15, marginBottom: 15 }}
-					activeOpacity={0.8}
-					onPress={() => {
-						props.navigation.navigate("Post", { post: itemData.item });
-					}}
-				>
-					<Image
-						source={{ uri: itemData.item.pictureuri }}
-						style={{ width: 280, height: 180 }}
-					/>
-					<Text
-						style={{
-							textAlign: "center",
-							fontSize: 18,
-							fontWeight: "bold",
+		<View>
+			<Text
+				style={{
+					textAlign: "center",
+					fontSize: 28,
+					fontWeight: "bold",
+					marginTop: 20,
+				}}
+			>
+				List of posts
+			</Text>
+			<FlatList
+				style={{ marginTop: 20, height: "85%" }}
+				data={state.postList}
+				renderItem={(itemData) => (
+					<TouchableOpacity
+						style={{ alignSelf: "center", marginTop: 15, marginBottom: 15 }}
+						activeOpacity={0.8}
+						onPress={() => {
+							props.navigation.navigate("Post", { post: itemData.item });
 						}}
 					>
-						{itemData.item.caption}
-					</Text>
-					<Text
-						style={{
-							textAlign: "center",
-							fontSize: 18,
-							fontWeight: "bold",
-						}}
-					>
-						{itemData.item.location}
-					</Text>
-					<Button
-						title="Play Caption"
-						onPress={() => playRecordedAudio(itemData.item.recordinguri)}
-					/>
-				</TouchableOpacity>
-			)}
-		></FlatList>
+						<Image
+							source={{ uri: itemData.item.pictureuri }}
+							style={{ width: 280, height: 180 }}
+						/>
+						<Text
+							style={{
+								textAlign: "center",
+								fontSize: 18,
+								fontWeight: "bold",
+							}}
+						>
+							{itemData.item.caption}
+						</Text>
+						<Text
+							style={{
+								textAlign: "center",
+								fontSize: 18,
+								fontWeight: "bold",
+							}}
+						>
+							{itemData.item.location}
+						</Text>
+						<Button
+							title="Play Caption"
+							onPress={() => playRecordedAudio(itemData.item.recordinguri)}
+						/>
+					</TouchableOpacity>
+				)}
+			></FlatList>
+		</View>
 	);
 };
 
